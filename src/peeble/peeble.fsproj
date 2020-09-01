@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\Global\Fable.Core.fs">
+      <Paket>True</Paket>
+      <Link>Fable/Fable.Core.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\Global\Prelude.fs">
+      <Paket>True</Paket>
+      <Link>Fable/Prelude.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\Global\Compiler.fs">
+      <Paket>True</Paket>
+      <Link>Fable/Compiler.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\AST\AST.Common.fs">
+      <Paket>True</Paket>
+      <Link>Fable/AST.Common.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\AST\AST.Fable.fs">
+      <Paket>True</Paket>
+      <Link>Fable/AST.Fable.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\MonadicTrampoline.fs">
+      <Paket>True</Paket>
+      <Link>Fable/MonadicTrampoline.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\Transforms.Util.fs">
+      <Paket>True</Paket>
+      <Link>Fable/Transforms.Util.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\OverloadSuffix.fs">
+      <Paket>True</Paket>
+      <Link>Fable/OverloadSuffix.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\FSharp2Fable.Util.fs">
+      <Paket>True</Paket>
+      <Link>Fable/FSharp2Fable.Util.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\ReplacementsInject.fs">
+      <Paket>True</Paket>
+      <Link>Fable/ReplacementsInject.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\Replacements.fs">
+      <Paket>True</Paket>
+      <Link>Fable/Replacements.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\Inject.fs">
+      <Paket>True</Paket>
+      <Link>Fable/Inject.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\FSharp2Fable.fs">
+      <Paket>True</Paket>
+      <Link>Fable/FSharp2Fable.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fable-compiler\fable\src\Fable.Transforms\FableTransforms.fs">
+      <Paket>True</Paket>
+      <Link>Fable/FableTransforms.fs</Link>
+    </Compile>
+    <Compile Include="PhpAst.fs" />
+    <Compile Include="PhpOutput.fs" />
+    <Compile Include="BuiltinTypes.fs" />
+    <Compile Include="Transforms.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+    <None Include="paket.references" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+    <Content Include="..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.xml">
+      <Paket>True</Paket>
+      <Link>paket-files/FSharp.Compiler.Service.xml</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,31 @@
+source https://api.nuget.org/v3/index.json
+
+storage: none
+framework: netcore3.1, netstandard2.0, netstandard2.1
+
+nuget Fable.Core
+github fable-compiler/fable lib\fcs\FSharp.Compiler.Service.dll
+github fable-compiler/fable lib\fcs\FSharp.Compiler.Service.xml
+github fable-compiler/fable src\Fable.Transforms\Global\Fable.Core.fs
+github fable-compiler/fable src\Fable.Transforms\Global\Prelude.fs
+github fable-compiler/fable src\Fable.Transforms\Global\Compiler.fs
+github fable-compiler/fable src\Fable.Transforms\AST\AST.Common.fs
+github fable-compiler/fable src\Fable.Transforms\AST\AST.Fable.fs
+github fable-compiler/fable src\Fable.Transforms\MonadicTrampoline.fs
+github fable-compiler/fable src\Fable.Transforms\Transforms.Util.fs
+github fable-compiler/fable src\Fable.Transforms\OverloadSuffix.fs
+github fable-compiler/fable src\Fable.Transforms\FSharp2Fable.Util.fs
+github fable-compiler/fable src\Fable.Transforms\ReplacementsInject.fs
+github fable-compiler/fable src\Fable.Transforms\Replacements.fs
+github fable-compiler/fable src\Fable.Transforms\Inject.fs
+github fable-compiler/fable src\Fable.Transforms\FSharp2Fable.fs
+github fable-compiler/fable src\Fable.Transforms\FableTransforms.fs
+
+
+
+nuget Microsoft.NET.Test.Sdk
+nuget unquote
+nuget xunit
+nuget xunit.runner.visualstudio
+nuget coverlet.collector
+nuget coverlet.msbuild

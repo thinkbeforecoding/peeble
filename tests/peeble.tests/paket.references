@@ -1,0 +1,9 @@
+Microsoft.NET.Test.Sdk
+xunit
+xunit.runner.visualstudio
+coverlet.collector
+coverlet.msbuild
+FSharp.Core
+unquote
+File:FSharp.Compiler.Service.dll
+File:FSharp.Compiler.Service.xml
