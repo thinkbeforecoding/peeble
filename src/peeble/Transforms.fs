@@ -155,7 +155,7 @@ let convertUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) =
               ]
               Abstract = false
               BaseType = None
-              Interfaces = [ PhpUnion.fSharpUnion ]
+              Interfaces = [ PhpUnion.fSharpUnion; Core.icomparable ]
               }
           ctx.AddType(t) |> PhpType ]
     else
@@ -256,7 +256,7 @@ let convertUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) =
                             ]
               Abstract = false
               BaseType = Some baseType
-              Interfaces = [] }
+              Interfaces = [ Core.icomparable ] }
         ctx.AddType(t) |> PhpType ]
 
 let convertRecord (ctx: PhpCompiler) (info: Fable.CompilerGeneratedConstructorInfo) = 
@@ -265,10 +265,49 @@ let convertRecord (ctx: PhpCompiler) (info: Fable.CompilerGeneratedConstructorIn
           Fields = [ for e in info.Entity.FSharpFields do 
                         { Name = e.Name 
                           Type  = convertType e.FieldType } ]
-          Methods = [ ]
+          Methods = [ 
+              { PhpFun.Name = "CompareTo"
+                PhpFun.Args = ["other"]
+                PhpFun.Matchings = []
+                PhpFun.Static = false
+                PhpFun.Body =
+                                  [ for e in info.Entity.FSharpFields do
+                                        let cmp = PhpVar(ctx.MakeUniqueVar "cmp",None)
+                                        match e.FieldType.TypeDefinition.CompiledName with
+                                        | "int"
+                                        | "string" -> 
+                                            Assign(cmp, 
+                                                PhpTernary( PhpBinaryOp(">", 
+                                                                PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
+                                                                PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None) ),
+                                                                PhpConst(PhpConstNumber 1.),
+                                                                   PhpTernary(
+                                                                       PhpBinaryOp("<", 
+                                                                           PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
+                                                                           PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None)),
+                                                                           PhpConst(PhpConstNumber -1.), 
+                                                                            PhpConst(PhpConstNumber 0.)
+                                                                    
+                                                
+                                               ) ) )
+                                        | _ ->
+                                            Assign(cmp, 
+                                                PhpMethod(PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
+                                                          "CompareTo",
+                                                          [PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None) ])
+                                            
+                                            )
+                                        If(PhpBinaryOp("!=", cmp, PhpConst(PhpConstNumber 0.) ),
+                                            [PhpStatement.Return cmp],
+                                            []
+                                        )
+                                    PhpStatement.Return (PhpConst (PhpConstNumber 0.))
+                                  ] }
+            
+          ]
           Abstract = false
           BaseType = None
-          Interfaces = []}
+          Interfaces = [ Core.icomparable ]}
       ctx.AddType(t) |> PhpType ]
 
 type ReturnStrategy =

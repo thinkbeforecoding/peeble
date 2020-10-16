@@ -20,3 +20,6 @@ module PhpUnion =
     let union = { Name = "Union"; Fields = []; Methods = []; Abstract = true; BaseType = None; Interfaces = []}
     let fSharpUnion = { Name = "FSharpUnion"; Fields = []; Methods = []; Abstract = true; BaseType = None; Interfaces = []}
 
+module Core =
+    let icomparable = { Name = "iComparable"; Fields = []; Methods = []; Abstract = true; BaseType = None; Interfaces = [] }
+

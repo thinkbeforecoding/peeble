@@ -90,18 +90,29 @@ type Compiler(currentFile, project: Project, options, fableLibraryDir: string) =
 
 
 
-
-
-
-
 open System.Xml.Linq
+open Argu
+
+module CmdLine =
+    type Options =
+        | [<Mandatory; MainCommand>] Project of string
+        | Output of string
+
+        interface IArgParserTemplate with
+            member this.Usage =
+                match this with
+                | Project _ -> "fsproj Project to transpile"
+                | Output _ -> "The output php file"
 
 
 [<EntryPoint>]
 let main argv =
 
-    match argv with
-    | [| project |] ->
+    let parser = Argu.ArgumentParser.Create<CmdLine.Options>("peeble")
+    let parseResult = parser.ParseCommandLine(argv) 
+
+    match parseResult.TryGetResult( CmdLine.Project ) with
+    | Some project ->
         let dir = Path.GetDirectoryName project
 
         let proj = XDocument.Load(project)
@@ -167,11 +178,21 @@ let main argv =
                             i,d
                 ]
 
-            let w = new StringWriter()
-            let ctx = PhpOutput.Writer.create(w)
-            let file = { Decls = fs }
-            PhpOutput.writeFile ctx file
-            printfn "%s" (string w)
+            match parseResult.TryGetResult(CmdLine.Output) with
+            | Some file -> 
+                use w = File.CreateText file
+                let ctx = PhpOutput.Writer.create(w)
+                let file = { Decls = fs }
+                PhpOutput.writeFile ctx file
+
+
+
+            | None ->
+                let w = new StringWriter()
+                let ctx = PhpOutput.Writer.create(w)
+                let file = { Decls = fs }
+                PhpOutput.writeFile ctx file
+                printfn "%s" (string w)
         | errors ->
             for error in errors do
                 eprintfn "[%s %d %d] %s" error.FileName error.Start.Line error.Start.Column error.Message
