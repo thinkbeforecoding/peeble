@@ -7,6 +7,14 @@
     <ToolCommandName>peeble</ToolCommandName>
     <PackageId>peeble-cli</PackageId>
     <PackageOutputPath>../../bin/tool</PackageOutputPath>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Title>peeble</Title>
+    <Description>F# to Php transpiler</Description>
+    <Authors>Jeremie Chassaing</Authors>
+    <Copyright>2020 thinkbeforecoding</Copyright>
+    <PackageIcon>peeble.png</PackageIcon>
+    <RepositoryUrl>https://github.com/thinkbeforecoding/peeble</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/thinkbeforecoding/peeble</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Service">
@@ -104,6 +112,7 @@
       <Paket>True</Paket>
       <Link>paket-files/FSharp.Compiler.Service.xml</Link>
     </Content>
+    <Content Include="peeble.png" Pack="true" PackagePath="" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Service">
