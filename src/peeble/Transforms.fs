@@ -99,66 +99,64 @@ let caseName (case: FSharpUnionCase) =
     else
         entity.CompiledName + "_" + case.Name
 
-
-let convertUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) = 
-    if info.Entity.UnionCases.Count = 1 then
-        let case = info.Entity.UnionCases.[0] 
-        [ let t =
-            { Name = case.Name
-              Fields = [ for e in case.UnionCaseFields do 
-                            { Name = e.Name 
-                              Type  = convertType e.FieldType } ]
-              Methods = [ 
-                  { PhpFun.Name = "get_FSharpCase"
-                    PhpFun.Args = []
-                    PhpFun.Matchings = []
-                    PhpFun.Static = false
-                    PhpFun.Body = 
-                      [ PhpStatement.Return(PhpConst(PhpConstString(case.Name)))] } 
-                  { PhpFun.Name = "CompareTo"
-                    PhpFun.Args = ["other"]
-                    PhpFun.Matchings = []
-                    PhpFun.Static = false
-                    PhpFun.Body =
-                                      [ for e in case.UnionCaseFields do 
-                                            let cmp = PhpVar(ctx.MakeUniqueVar "cmp",None)
-                                            match e.FieldType.TypeDefinition.CompiledName with
-                                            | "int" -> 
-                                                Assign(cmp, 
-                                                    PhpTernary( PhpBinaryOp(">", 
-                                                                    PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
-                                                                    PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None) ),
-                                                                    PhpConst(PhpConstNumber 1.),
-                                                                       PhpTernary(
-                                                                           PhpBinaryOp("<", 
-                                                                               PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
-                                                                               PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None)),
-                                                                               PhpConst(PhpConstNumber -1.), 
-                                                                                PhpConst(PhpConstNumber 0.)
-                                                                        
-                                                    
-                                                   ) ) )
-                                            | _ ->
-                                                Assign(cmp, 
-                                                    PhpMethod(PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
-                                                              "CompareTo",
-                                                              [PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None) ])
+let convertSingleCaseUnion (ctx: PhpCompiler) (case: FSharpUnionCase) =
+    [ let t =
+        { Name = case.Name
+          Fields = [ for e in case.UnionCaseFields do 
+                        { Name = e.Name 
+                          Type  = convertType e.FieldType } ]
+          Methods = [ 
+              { PhpFun.Name = "get_FSharpCase"
+                PhpFun.Args = []
+                PhpFun.Matchings = []
+                PhpFun.Static = false
+                PhpFun.Body = 
+                  [ PhpStatement.Return(PhpConst(PhpConstString(case.Name)))] } 
+              { PhpFun.Name = "CompareTo"
+                PhpFun.Args = ["other"]
+                PhpFun.Matchings = []
+                PhpFun.Static = false
+                PhpFun.Body =
+                                  [ for e in case.UnionCaseFields do 
+                                        let cmp = PhpVar(ctx.MakeUniqueVar "cmp",None)
+                                        match e.FieldType.TypeDefinition.CompiledName with
+                                        | "int" -> 
+                                            Assign(cmp, 
+                                                PhpTernary( PhpBinaryOp(">", 
+                                                                PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
+                                                                PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None) ),
+                                                                PhpConst(PhpConstNumber 1.),
+                                                                   PhpTernary(
+                                                                       PhpBinaryOp("<", 
+                                                                           PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
+                                                                           PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None)),
+                                                                           PhpConst(PhpConstNumber -1.), 
+                                                                            PhpConst(PhpConstNumber 0.)
+                                                                    
                                                 
-                                                )
-                                            If(PhpBinaryOp("!=", cmp, PhpConst(PhpConstNumber 0.) ),
-                                                [PhpStatement.Return cmp],
-                                                []
+                                               ) ) )
+                                        | _ ->
+                                            Assign(cmp, 
+                                                PhpMethod(PhpProp(PhpVar("this",None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None),
+                                                          "CompareTo",
+                                                          [PhpProp(PhpVar("other", None), Prop.Field { Name = e.Name; Type = convertType e.FieldType }, None) ])
+                                            
                                             )
-                                        PhpStatement.Return (PhpConst (PhpConstNumber 0.))
-                                      ]
-                    }
-              ]
-              Abstract = false
-              BaseType = None
-              Interfaces = [ PhpUnion.fSharpUnion; Core.icomparable ]
-              }
-          ctx.AddType(t) |> PhpType ]
-    else
+                                        If(PhpBinaryOp("!=", cmp, PhpConst(PhpConstNumber 0.) ),
+                                            [PhpStatement.Return cmp],
+                                            []
+                                        )
+                                    PhpStatement.Return (PhpConst (PhpConstNumber 0.))
+                                  ]
+                }
+          ]
+          Abstract = false
+          BaseType = None
+          Interfaces = [ PhpUnion.fSharpUnion; Core.icomparable ]
+          }
+      ctx.AddType(t) |> PhpType ]
+
+let convertMultiCaseUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) =
     [ let baseType =
             { Name = info.Entity.CompiledName
               Fields = []
@@ -258,6 +256,13 @@ let convertUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) =
               BaseType = Some baseType
               Interfaces = [ Core.icomparable ] }
         ctx.AddType(t) |> PhpType ]
+
+
+let convertUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) = 
+    if info.Entity.UnionCases.Count = 1 then
+        convertSingleCaseUnion ctx info.Entity.UnionCases.[0] 
+    else
+        convertMultiCaseUnion ctx info
 
 let convertRecord (ctx: PhpCompiler) (info: Fable.CompilerGeneratedConstructorInfo) = 
     [ let t =

@@ -3,7 +3,7 @@
 open System
 open System.IO
 open PhpAst
-
+/// Context to output the PhpAst as Php text
 type Writer =
     { Writer: TextWriter
       Indent: int
@@ -19,29 +19,34 @@ type Writer =
           EmitDeclNumber = defaultArg emitDeclNumber false
           }
 
+/// increment indent
 let indent ctx =
     { ctx with Indent = ctx.Indent + 1}
 
-
+/// write spaces for context indent
 let writeIndent  ctx =
     for _ in 1 .. ctx.Indent do
         ctx.Writer.Write("    ")
 
+/// write text to context
 let write ctx txt =
     ctx.Writer.Write(txt: string)
 
-
+/// write text followed by a newline
 let writeln ctx txt =
      ctx.Writer.WriteLine(txt: string)
 
+/// write given text with indent
 let writei ctx txt =
     writeIndent ctx
     write ctx txt
 
+/// write text with index and newline
 let writeiln ctx txt =
     writeIndent ctx
     writeln ctx txt
   
+/// write a list of $ prefixed variable separated by commas
 let writeVarList ctx vars =
     let mutable first = true
     for var in vars do
@@ -51,6 +56,8 @@ let writeVarList ctx vars =
             write ctx ", "
         write ctx "$"
         write ctx var
+
+/// write variables separated by commas in a 'use' specification
 let writeUseList ctx vars =
     let mutable first = true
     for var in vars do
@@ -99,6 +106,7 @@ module Precedence =
 
     let clear ctx = { ctx with Precedence = Int32.MaxValue} 
 
+/// write given code using specified precedence. Adds enclosing parens if needed.
 let withPrecedence ctx prec f =
     let useParens = prec > ctx.Precedence || (prec = 14 && ctx.Precedence = 14)
     let subCtx = { ctx with Precedence = prec }
@@ -110,6 +118,7 @@ let withPrecedence ctx prec f =
     if useParens then
         write subCtx ")"
 
+/// write a PhpExp to context recursively
 let rec writeExpr ctx expr =
     match expr with
     | PhpBinaryOp(op, left, right) ->
@@ -235,6 +244,8 @@ let rec writeExpr ctx expr =
         else
             write ctx " }"
     | PhpMacro(macro, args) ->
+        // this is used for functions marked with the
+        // Emit attribute
         let regex = System.Text.RegularExpressions.Regex("\$(?<n>\d)(?<s>\.\.\.)?")
         let matches = regex.Matches(macro)
         let mutable pos = 0
@@ -269,6 +280,7 @@ and writeArgs ctx args =
         else
             write ctx ", "
         writeExpr ctx arg
+
 and writeArrayIndex ctx index =
     match index with
     | PhpArrayString s  ->
@@ -281,7 +293,7 @@ and writeArrayIndex ctx index =
     | PhpArrayNoIndex ->
         ()
 
-    
+/// Writes a Php Statement
 and writeStatement ctx st =
     match st with
     | PhpStatement.Return expr ->
@@ -349,6 +361,7 @@ and writeStatement ctx st =
         writeln ctx ";"
 
 
+/// write a Php function
 let writeFunc ctx (f: PhpFun) =
     writei ctx ""
     if f.Static then
@@ -455,6 +468,7 @@ let writeDecl ctx d =
     | PhpFun t -> writeFunc ctx t
     | PhpDeclValue(n,expr) -> writeAssign ctx n expr
     | PhpDeclAction(expr) -> writeAction ctx expr
+
 
 let writeFile ctx (file: PhpFile) =
     if ctx.EmitPhpMark then
