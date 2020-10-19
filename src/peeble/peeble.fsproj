@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>peeble</ToolCommandName>
+    <PackageId>peeble-cli</PackageId>
     <PackageOutputPath>../../bin/tool</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
