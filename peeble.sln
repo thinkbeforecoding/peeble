@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{E5F881
 		build.cmd = build.cmd
 		build.fsx = build.fsx
 		paket.dependencies = paket.dependencies
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "sample", "sample\sample.fsproj", "{A0E1D26F-8347-4D34-BB21-CF2DC5B37A2A}"
@@ -19,6 +20,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EDC8338C-CA75-44DC-B828-204C1010CC44}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "peeble.tests", "tests\peeble.tests\peeble.tests.fsproj", "{3709B967-ABCA-4241-A93E-2E45C5C1BFBE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FSharp.Core", "FSharp.Core", "{9F388538-E59A-4747-9153-5A4CA36E7E8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,6 +76,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F64FE7F3-697C-4524-8CC9-163F4B02A351} = {8E5084BC-7C05-4DBD-9DE7-F89CCBAE19C3}
 		{3709B967-ABCA-4241-A93E-2E45C5C1BFBE} = {EDC8338C-CA75-44DC-B828-204C1010CC44}
+		{9F388538-E59A-4747-9153-5A4CA36E7E8A} = {8E5084BC-7C05-4DBD-9DE7-F89CCBAE19C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DA6AC55B-22A3-4299-8FCD-34973A51BF0A}

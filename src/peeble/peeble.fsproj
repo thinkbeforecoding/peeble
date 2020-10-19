@@ -3,6 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>peeble</ToolCommandName>
+    <PackageOutputPath>../../bin/tool</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Service">
@@ -100,6 +103,20 @@
       <Paket>True</Paket>
       <Link>paket-files/FSharp.Compiler.Service.xml</Link>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\paket-files\fable-compiler\fable\lib\fcs\FSharp.Compiler.Service.dll</HintPath>
+      <Private>True</Private>
+      <Paket>True</Paket>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Service">

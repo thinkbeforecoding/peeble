@@ -1,6 +1,7 @@
 Fable.Core
 Argu
-File:FSharp.Compiler.Service.dll 
+Dotnet.ProjInfo
+File:FSharp.Compiler.Service.dll
 File:FSharp.Compiler.Service.xml
 File:Fable.Core.fs Fable
 File:Prelude.fs Fable

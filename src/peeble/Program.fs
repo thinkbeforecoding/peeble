@@ -105,6 +105,100 @@ module CmdLine =
                 | Output _ -> "The output php file"
 
 
+let private runProcess (workingDir: string) (exePath: string) (args: string) =
+    let psi = System.Diagnostics.ProcessStartInfo()
+    psi.FileName <- exePath
+    psi.WorkingDirectory <- workingDir
+    psi.RedirectStandardOutput <- true
+    psi.RedirectStandardError <- true
+    psi.Arguments <- args
+    psi.CreateNoWindow <- true
+    psi.UseShellExecute <- false
+
+    use p = new System.Diagnostics.Process()
+    p.StartInfo <- psi
+
+    let sbOut = System.Text.StringBuilder()
+    p.OutputDataReceived.Add(fun ea -> sbOut.AppendLine(ea.Data) |> ignore)
+
+    let sbErr = System.Text.StringBuilder()
+    p.ErrorDataReceived.Add(fun ea -> sbErr.AppendLine(ea.Data) |> ignore)
+
+    p.Start() |> ignore
+    p.BeginOutputReadLine()
+    p.BeginErrorReadLine()
+    p.WaitForExit()
+
+    let exitCode = p.ExitCode
+    exitCode, (workingDir, exePath, args)
+module Process =
+    let private runProcess (workingDir: string) (exePath: string) (args: string) =
+        let logOut = System.Collections.Concurrent.ConcurrentQueue<string>()
+        let logErr = System.Collections.Concurrent.ConcurrentQueue<string>()
+
+        let psi = System.Diagnostics.ProcessStartInfo()
+        psi.FileName <- exePath
+        psi.WorkingDirectory <- workingDir
+        psi.RedirectStandardOutput <- true
+        psi.RedirectStandardError <- true
+        psi.Arguments <- args
+        psi.CreateNoWindow <- true
+        psi.UseShellExecute <- false
+
+        use p = new System.Diagnostics.Process()
+        p.StartInfo <- psi
+
+        p.OutputDataReceived.Add(fun ea -> logOut.Enqueue (ea.Data))
+        p.ErrorDataReceived.Add(fun ea -> logErr.Enqueue (ea.Data))
+
+        let exitCode =
+            try
+                p.Start() |> ignore
+                p.BeginOutputReadLine()
+                p.BeginErrorReadLine()
+                p.WaitForExit()
+                p.ExitCode
+            with ex ->
+                logErr.Enqueue ("Cannot run: " + ex.Message)
+                -1
+
+        exitCode, logOut.ToArray(), logErr.ToArray()
+
+    // Adapted from https://github.com/enricosada/dotnet-proj-info/blob/1e6d0521f7f333df7eff3148465f7df6191e0201/src/dotnet-proj/Program.fs#L155
+    let runCmd log workingDir exePath args =
+        log (workingDir + "> " + exePath + " " + (args |> String.concat " "))
+
+        let exitCode, logOut, logErr =
+            String.concat " " args
+            |> runProcess workingDir exePath
+
+        Array.append logOut logErr
+        |> String.concat "\n"
+        |> log
+
+        exitCode
+
+let getProjectFscArgs dir project =
+    let getFscArgs = Dotnet.ProjInfo.Inspect.getFscArgs
+    let getP2PRefs = Dotnet.ProjInfo.Inspect.getResolvedP2PRefs
+    let gp () = Dotnet.ProjInfo.Inspect.getProperties (["TargetPath"; "IsCrossTargetingBuild"; "TargetFrameworks"; "TargetFramework"])
+     
+    let results =
+        let runCmd exePath args = runProcess dir exePath (args |> String.concat " ")
+
+        let msbuildExec = Dotnet.ProjInfo.Inspect.dotnetMsbuild runCmd
+        let log  = ignore
+
+        let additionalArgs = [] //additionalMSBuildProps |> List.map (Dotnet.ProjInfo.Inspect.MSBuild.MSbuildCli.Property)
+
+        project
+        |> Dotnet.ProjInfo.Inspect.getProjectInfos log msbuildExec [getFscArgs; getP2PRefs; gp] additionalArgs
+
+    match results with
+    | Ok (Ok (Dotnet.ProjInfo.Inspect.FscArgs r) :: _) -> r
+    | Error e -> failwithf "%A" e
+
+
 [<EntryPoint>]
 let main argv =
 
@@ -113,6 +207,12 @@ let main argv =
 
     match parseResult.TryGetResult( CmdLine.Project ) with
     | Some project ->
+        let project = 
+            if Path.IsPathRooted(project : string) then
+                project
+            else
+                Path.Combine(Environment.CurrentDirectory, project)
+
         let dir = Path.GetDirectoryName project
 
         let proj = XDocument.Load(project)
@@ -122,13 +222,21 @@ let main argv =
             |> Seq.map (fun p -> Path.Combine(dir, p))
             |> Seq.toList
 
+        Process.runCmd ignore
+            dir
+            "dotnet" ["restore"; IO.Path.GetFileName project]
+        |> ignore
+
+
+        let fscopts = getProjectFscArgs dir project
+
         let opts   =
             let projOptions: FSharpProjectOptions =
                      {
                          ProjectId = None
                          ProjectFileName = project
                          SourceFiles = List.toArray files 
-                         OtherOptions = [| @"-r:Fable.Core.dll"|]
+                         OtherOptions = Array.ofList fscopts //   [| "--targetprofile:netstandard" (*; @"-r:Fable.Core.dll"*)|]
                          ReferencedProjects = [||] //p2pProjects |> Array.ofList
                          IsIncompleteTypeCheckEnvironment = false
                          UseScriptResolutionRules = false

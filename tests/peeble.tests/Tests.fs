@@ -12,13 +12,39 @@ open System.IO
 open Swensen.Unquote
 
 let compile input = 
+    let fscOpts =
+        let prj =
+            """<Project Sdk="Microsoft.NET.Sdk">
+            
+              <PropertyGroup>
+                <TargetFramework>netcoreapp3.1</TargetFramework>
+              </PropertyGroup>
+            
+              <ItemGroup>
+                <Compile Include="test.fs" />
+              </ItemGroup>
+            
+            </Project>
+            
+            """
+
+        let tmp = Path.Combine( IO.Path.GetTempPath(), "peeble-test")
+        if not (IO.Directory.Exists tmp) then
+            Directory.CreateDirectory tmp |> ignore
+        let fsproj = Path.Combine( tmp, "test.fsproj")
+        File.WriteAllText(fsproj, prj)
+
+
+        Peeble.Program.getProjectFscArgs (Path.GetDirectoryName fsproj) fsproj
+        |> List.toArray
+
     let opts   =
         let projOptions: FSharpProjectOptions =
                  {
                      ProjectId = None
                      ProjectFileName = "test.fsproj"
                      SourceFiles = [|"test.fs"|]
-                     OtherOptions = [| @"-r:Fable.Core.dll"|]
+                     OtherOptions = fscOpts |> Array.filter (fun o -> not (o.StartsWith("--target") ))
                      ReferencedProjects = [||] //p2pProjects |> Array.ofList
                      IsIncompleteTypeCheckEnvironment = false
                      UseScriptResolutionRules = false
@@ -69,6 +95,7 @@ let compile input =
             ]
 
         { Decls = fs }
+    | errs -> failwithf "%A" errs
 
 let write file =
     let w = new StringWriter()

@@ -6,3 +6,7 @@
 .vs/
 paket-files/
 **.user
+.ionide/
+.vscode/
+launchSettings.json
+
