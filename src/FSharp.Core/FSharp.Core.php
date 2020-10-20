@@ -31,7 +31,7 @@ class Util {
 
     static function randomNext($min,$max)
     {
-        return bga_rand ($min , $max );
+        return rand ($min , $max );
     }
 
 
