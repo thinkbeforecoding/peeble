@@ -77,8 +77,11 @@ class Util {
             else
                 return Util::comparePrimitives($x,$y);
         }
+    }
 
-        
+    static function int32ToString($x)
+    {
+        return strval($x);
     }
 }
 interface Union {
