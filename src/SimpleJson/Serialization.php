@@ -170,3 +170,96 @@ function convertToSimpleJson($obj) {
         return $obj;
 } 
 
+function convertType($json, $cls)
+{
+    $class_vars = get_class_vars($cls);
+    if (count($class_vars) == 0) {
+        return new $cls();
+    } elseif (count($class_vars) == 1) {
+        $fieldName =key($class_vars);
+        $method = "get_{$fieldName}_Type";
+        $field = convertFromSimpleJson($json, $cls::$method());
+        return new $cls($field);
+    } else {
+        $fields = [];
+        foreach ($class_vars as $field => $_) {
+            $method = "get_{$field}_Type";
+            $fields[$field] = convertFromSimpleJson($json->$field, $cls::$method());
+        }
+        return new $cls(...$fields);
+    }
+}
+
+function convertFromSimpleJson($json, $cls)
+{
+    if (is_null($json)) {
+        return null;
+    }
+
+    if ($cls == 'String') {
+        return $json;
+    }
+    if ($cls == 'Int32') {
+        return $json;
+    }
+
+    if (is_array($cls)) {
+        if ($cls[0] == "List") {
+            $result = [];
+            foreach ($json as $item) {
+                $result[] = convertFromSimpleJson($item, $cls[1]);
+            }
+            return FSharpList::ofArray($result);
+        } elseif ($cls[0] == "Set") {
+            $result = [];
+            $itemCls = $cls[1];
+            foreach ($json as $item) {
+                $result[] = convertFromSimpleJson($item, $itemCls);
+            }
+            return Set::ofSeq($result, ['Compare' => 'Util::compare']);
+        } elseif ($cls[0] == "Map") {
+            $result = [];
+            $keyCls = $cls[1];
+            $valueCls = $cls[2];
+            foreach ($json as $item) {
+                $result[] = [
+                    convertFromSimpleJson($item[0], $keyCls),
+                    convertFromSimpleJson($item[1], $valueCls)
+                ];
+            }
+            return Map::ofArray($result);
+        } elseif ($cls[0] == "Tuple") {
+            $result = [];
+            $index = 1;
+            foreach ($json as $item) {
+                $result[] = convertFromSimpleJson($item, $cls[$index]);
+                $index++;
+            }
+            return $result;
+        }
+    }
+
+    if (is_subclass_of($cls, "FSharpUnion")) {
+        if (is_string($json)) {
+            foreach ($cls::allCases() as $case) {
+                if ($case::get_FSharpCase() == $json) {
+                    return new $case();
+                }
+            }
+        } elseif (is_object($json)) {
+            foreach ($cls::allCases() as $caseCls) {
+                $caseName = $caseCls::get_FSharpCase();
+                if (property_exists($json, $caseName)) {
+                    return convertType($json->$caseName, $caseCls);
+                }
+            }
+        }
+    }
+
+    // Record (should be at least iComparable)
+    if (is_subclass_of($cls, "iComparable")) {
+        return convertType($json, $cls);
+    }
+
+    throw new Error("Not sure how to decode this");
+}
