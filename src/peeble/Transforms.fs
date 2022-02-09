@@ -78,10 +78,47 @@ let convertType (t: FSharpType) =
         | Symbol.TypeWithDefinition entity ->
             match entity.CompiledName with
             | "FSharpSet`1" -> "Set"
+            | "FSharpMap`2" -> "Map"
             | name -> name
         | _ ->
             failwithf "%A" t
        
+
+let rec convertTypeToPhp (t: FSharpType) =
+    if (t.IsAbbreviation) then
+        convertTypeToPhp t.AbbreviatedType
+    else
+        let withGenericParameters name =
+            PhpArray ([
+                PhpArrayNoIndex, PhpConst (PhpConstString name)
+                for arg in t.GenericArguments do
+                    PhpArrayNoIndex, convertTypeToPhp arg
+            ])
+        match t with
+        | Symbol.TypeWithDefinition entity ->
+            match entity.CompiledName with
+            | "FSharpSet`1" -> 
+                withGenericParameters "Set"
+            | "FSharpList`1" -> 
+                withGenericParameters "List"
+            | "FSharpMap`2" -> 
+                withGenericParameters "Map"
+            | name -> 
+                PhpConst (PhpConstString name)
+        | Symbol.Tuple tuple ->
+            withGenericParameters "Tuple"
+        | _ ->
+            failwithf "%A" t
+
+let getTypeReflectionMethodsForFields (fields: System.Collections.Generic.IList<FSharpField>) =
+    [ for field in fields do
+                  { PhpFun.Name = sprintf "get_%s_Type" field.Name
+                    PhpFun.Args = []
+                    PhpFun.Matchings = []
+                    PhpFun.Static = true
+                    PhpFun.Body = 
+                        [ PhpStatement.Return(convertTypeToPhp field.FieldType)]
+                  } ]
 
 let fixName (name: string) =
     name.Replace('$','_')
@@ -106,12 +143,24 @@ let convertSingleCaseUnion (ctx: PhpCompiler) (case: FSharpUnionCase) =
                         { Name = e.Name 
                           Type  = convertType e.FieldType } ]
           Methods = [ 
+              { PhpFun.Name = "allCases";
+                PhpFun.Args = []
+                PhpFun.Matchings = []
+                PhpFun.Static = true
+                PhpFun.Body =
+                    [ PhpStatement.Return(
+                        PhpArray([
+                            PhpArrayNoIndex, PhpConst (PhpConstString case.Name)
+                        ]))
+                    ]
+                }
               { PhpFun.Name = "get_FSharpCase"
                 PhpFun.Args = []
                 PhpFun.Matchings = []
-                PhpFun.Static = false
+                PhpFun.Static = true
                 PhpFun.Body = 
                   [ PhpStatement.Return(PhpConst(PhpConstString(case.Name)))] } 
+              yield! getTypeReflectionMethodsForFields case.UnionCaseFields
               { PhpFun.Name = "CompareTo"
                 PhpFun.Args = ["other"]
                 PhpFun.Matchings = []
@@ -160,7 +209,20 @@ let convertMultiCaseUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) 
     [ let baseType =
             { Name = info.Entity.CompiledName
               Fields = []
-              Methods = []
+              Methods = [
+                  { PhpFun.Name = "allCases";
+                    PhpFun.Args = []
+                    PhpFun.Matchings = []
+                    PhpFun.Static = true
+                    PhpFun.Body = 
+                        [ PhpStatement.Return(
+                            PhpArray(
+                                info.Entity.UnionCases
+                                |> Seq.map (fun case -> (PhpArrayNoIndex, PhpConst(PhpConstString(caseName case))))
+                                |> List.ofSeq
+                            ))]
+                    }
+              ]
               Abstract = true 
               BaseType = None
               Interfaces = [PhpUnion.union; PhpUnion.fSharpUnion ]}
@@ -175,18 +237,18 @@ let convertMultiCaseUnion (ctx: PhpCompiler) (info: Fable.UnionConstructorInfo) 
               Methods = [ { PhpFun.Name = "get_Case";
                             PhpFun.Args = []
                             PhpFun.Matchings = []
-                            PhpFun.Static = false
+                            PhpFun.Static = true
                             PhpFun.Body = 
                                 [ PhpStatement.Return(PhpConst(PhpConstString(caseName case)))]
                             } 
                           { PhpFun.Name = "get_FSharpCase";
                             PhpFun.Args = []
                             PhpFun.Matchings = []
-                            PhpFun.Static = false
+                            PhpFun.Static = true
                             PhpFun.Body = 
                                 [ PhpStatement.Return(PhpConst(PhpConstString(case.Name)))]
                             } 
-
+                          yield! getTypeReflectionMethodsForFields case.UnionCaseFields
                           { PhpFun.Name = "get_Tag"
                             PhpFun.Args = []
                             PhpFun.Matchings = []
@@ -271,6 +333,7 @@ let convertRecord (ctx: PhpCompiler) (info: Fable.CompilerGeneratedConstructorIn
                         { Name = e.Name 
                           Type  = convertType e.FieldType } ]
           Methods = [ 
+              yield! getTypeReflectionMethodsForFields info.Entity.FSharpFields
               { PhpFun.Name = "CompareTo"
                 PhpFun.Args = ["other"]
                 PhpFun.Matchings = []
