@@ -1,5 +1,7 @@
 # Peeble. A F# -> PHP transpiler
 
+This repository has moved to Codeberg: https://codeberg.org/thinkbeforecoding/peeble
+
 ## Why
 
 I wrote a game using Fable Elmish that has more that 2000LoC of non-trivial game logic executed both in the browser and on the server. When I needed to port it to a platform accepting only PHP backend, the simplest option would have been to rewrite the server side to php. But it would have led to heavy code duplication in two different languages.
