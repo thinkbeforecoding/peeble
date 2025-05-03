@@ -191,6 +191,8 @@ let rec writeExpr ctx expr =
         match f with
         | PhpConst (PhpConstString f) ->
             write ctx f
+        | PhpVar (name, _) ->
+            write ctx name
         | _ -> writeExpr ctx f
         if anonymous then
             write ctx ")"
